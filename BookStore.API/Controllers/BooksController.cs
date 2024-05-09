@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookStore.API.Data;
+using AutoMapper;
+using BookStore.API.Models.Book;
+using AutoMapper.QueryableExtensions;
+using BookStore.API.Static;
 
 namespace BookStore.API.Controllers
 {
@@ -14,50 +18,82 @@ namespace BookStore.API.Controllers
     public class BooksController : ControllerBase
     {
         private readonly BookStoreDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<BooksController> _logger;
 
-        public BooksController(BookStoreDbContext context)
+        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _logger = logger;
         }
 
         // GET: api/Books
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<BookReadOnlyDto>>> GetBooks()
         {
-            return Ok(await _context.Books.ToListAsync());
+            try
+            {
+                var books = await _context.Books
+                .Include(b => b.Author)
+                .ProjectTo<BookReadOnlyDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+                // var bookDtos = _mapper.Map<IEnumerable<BookReadOnlyDto>>(books);
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
+                return StatusCode(500, Messages.Error500Message);
+            }
         }
 
         // GET: api/Books/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBook(int id)
+        public async Task<ActionResult<BookDetailsDto>> GetBookById(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-
-            if (book == null)
+            try
             {
-                return NotFound();
-            }
+                var book = await _context.Books
+                .Include(b => b.Author)
+                .ProjectTo<BookDetailsDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
-            return Ok(book);
+                if (book == null)
+                {
+                    _logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
+                    return NotFound();
+                }
+
+                return Ok(book);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetBookById)}");
+                return StatusCode(500, Messages.Error500Message);
+            }
+            
         }
 
         // PUT: api/Books/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBook(int id, Book book)
+        public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
         {
-            if (id != book.Id)
+            if (id != bookDto.Id)
             {
+                _logger.LogWarning($"Update ID invalid in {nameof(PutBook)} - ID: {id}");
                 return BadRequest();
             }
-
+            
+            var book = _mapper.Map<Book>(bookDto);
             _context.Entry(book).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!await BookExists(id))
                 {
@@ -65,7 +101,8 @@ namespace BookStore.API.Controllers
                 }
                 else
                 {
-                    throw;
+                    _logger.LogError(ex, $"Error Performing GET in {nameof(PutBook)}");
+                    return StatusCode(500, Messages.Error500Message);
                 }
             }
 
@@ -75,28 +112,48 @@ namespace BookStore.API.Controllers
         // POST: api/Books
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Book>> PostBook(Book book)
+        public async Task<ActionResult<Book>> PostBook(BookCreateDto bookDto)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var book = _mapper.Map<Book>(bookDto);
+                _context.Books.Add(book);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBook", new { id = book.Id }, book);
+                return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error Performing POST in {nameof(PostBook)}", bookDto);
+                return StatusCode(500, Messages.Error500Message);
+            }
+            
         }
 
         // DELETE: api/Books/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
+            try
             {
-                return NotFound();
+                var book = await _context.Books.FindAsync(id);
+                if (book == null)
+                {
+                    _logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
+                    return NotFound();
+                }
+
+                _context.Books.Remove(book);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
+            catch (Exception ex)
+            {
 
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                _logger.LogError(ex, $"Error Performing DELETE in {nameof(DeleteBook)}");
+                return StatusCode(500, Messages.Error500Message);
+            }
         }
 
         private async Task<bool> BookExists(int id)

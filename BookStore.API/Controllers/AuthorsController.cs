@@ -135,6 +135,7 @@ namespace BookStore.API.Controllers
                 var author = await _context.Authors.FindAsync(id);
                 if (author == null)
                 {
+                    _logger.LogWarning($"Record Not Found: {nameof(GetAuthorById)} - ID: {id}");
                     return NotFound();
                 }
 
