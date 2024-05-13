@@ -1,6 +1,7 @@
 ﻿@page "/users/register"
 @inject IClient httpClient
 @inject NavigationManager navManager
+@rendermode InteractiveServer
 
 <h3>Register new account</h3>
 @if (!string.IsNullOrEmpty(message))
@@ -10,7 +11,7 @@
     </div>
 }
 <div class="card-body">
-    <EditForm Model="RegistrationModel" FormName="Name" OnValidSubmit="HandleRegistration" >
+    <EditForm Model="RegistrationModel" FormName="Name" OnValidSubmit="HandleRegistration">
         <DataAnnotationsValidator/>
         <ValidationSummary/>
         <div class="form-group">
@@ -57,7 +58,7 @@
             if (ex.StatusCode >= 200 && ex.StatusCode < 300)
                 NavigateToLogin();
 
-            message = ex.Message;
+            message = ex.Response;
 
         }
     }
