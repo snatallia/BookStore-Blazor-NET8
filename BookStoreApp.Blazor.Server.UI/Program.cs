@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using BookStoreApp.Blazor.Server.UI.Components;
 using BookStoreApp.Blazor.Server.UI.Providers;
 using BookStoreApp.Blazor.Server.UI.Services.Authentication;
+using BookStoreApp.Blazor.Server.UI.Services.Author;
 using BookStoreApp.Blazor.Server.UI.Services.Base;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -21,6 +22,7 @@ namespace BookStoreApp.Blazor.Server.UI
             builder.Services.AddBlazoredLocalStorage();
 
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IAuthorService, AuthorService>();
             builder.Services.AddScoped<ApiAuthenticationStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(p =>
                 p.GetRequiredService<ApiAuthenticationStateProvider>());

@@ -1,0 +1,62 @@
+﻿@page "/authors/"
+@inject IAuthorService authorService;
+
+<h3>Index</h3>
+
+
+
+@if (!response.Success)
+{
+    <div class="alert alert-danger">
+        <h4>@response.Message</h4>
+    </div>
+}
+@if (authors == null)
+{
+    <div class="alert alert-info">
+        <h4>Loding data...</h4>
+    </div>
+}
+else
+{
+    <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
+    <br />
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var author in authors)
+            {
+                <tr>
+                    <td>@author.FirstName</td>
+                    <td>@author.LastName </td>
+                    <td>
+                        <a class="btn btn-primary" href="/authors/details"><span class="bi bi-ticket-detailed" aria-hidden="true"></span>Details</a>
+                        <a class="btn btn-warning" href="/authors/edit"><span class="oi oi-person" aria-hidden="true"></span>Edit</a>
+                        <a class="btn btn-danger" href="/authors/delete"><span class="oi oi-delete" aria-hidden="true"></span>Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    private List<AuthorReadOnlyDto> authors;
+    private Response<List<AuthorReadOnlyDto>> response = new Response<List<AuthorReadOnlyDto>> { Success = true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        response = await authorService.GetAuthors();
+
+        if (response.Success)
+        {
+
+            authors = response.Data;        }
+    }
+
+}
