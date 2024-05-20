@@ -1,0 +1,59 @@
+﻿@page "/authors/details/{id:int}"
+@inject IAuthorService authorService
+@inject NavigationManager navManager
+
+<h3>Details</h3>
+@if (author== null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<div>
+    <EditForm Model="author">
+       <fieldset disabled="true">
+            <div class="form-group">
+                <label for="FirstName">First name:</label>@author.FirstName<br/>
+                <label for="LastName">Last name:</label>@author.LastName<br/>
+                <label for="Bio">Bio:</label>@author.Bio<br />
+            </div>
+       </fieldset> 
+       
+        <button @onclick="GoToUpdate" class="btn btn-primary">
+            <span class="oi oi-pencil"></span>
+            Update Author
+        </button>
+        <button @onclick="BackToList" class="btn btn-outline-secondary">
+            <span class="oi oi-media-skip-backward"></span>
+            Back To List
+        </button>
+    </EditForm>
+</div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private AuthorReadOnlyDto author;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await authorService.GetAuthor(id);
+
+        if (response.Success)
+        {
+            author = response.Data;
+        }
+    }
+
+    private void BackToList()
+    {
+        navManager.NavigateTo("/authors/");
+    }
+
+    private void GoToUpdate()
+    {
+        navManager.NavigateTo($"/authors/update/{id}");
+    }
+}

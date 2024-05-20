@@ -1,5 +1,6 @@
 ﻿@page "/authors/"
 @inject IAuthorService authorService;
+@inject IJSRuntime JsRuntime
 
 <h3>Index</h3>
 
@@ -11,39 +12,42 @@
         <h4>@response.Message</h4>
     </div>
 }
-@if (authors == null)
-{
-    <div class="alert alert-info">
-        <h4>Loding data...</h4>
-    </div>
-}
 else
 {
-    <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
-    <br />
-    <table class="table table-responsive">
-        <thead>
-            <tr>
-                <th>First name</th>
-                <th>Last name</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var author in authors)
-            {
+    @if (authors == null)
+    {
+        <div class="alert alert-info">
+            <h4>Loding data...</h4>
+        </div>
+    }
+    else
+    {
+        <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
+        <br />
+        <table class="table table-responsive">
+            <thead>
                 <tr>
-                    <td>@author.FirstName</td>
-                    <td>@author.LastName </td>
-                    <td>
-                        <a class="btn btn-primary" href="/authors/details"><span class="bi bi-ticket-detailed" aria-hidden="true"></span>Details</a>
-                        <a class="btn btn-warning" href="/authors/edit"><span class="oi oi-person" aria-hidden="true"></span>Edit</a>
-                        <a class="btn btn-danger" href="/authors/delete"><span class="oi oi-delete" aria-hidden="true"></span>Delete</a>
-                    </td>
+                    <th>First name</th>
+                    <th>Last name</th>
+                    <th>Action</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach(var author in authors)
+                {
+                    <tr>
+                        <td>@author.FirstName</td>
+                        <td>@author.LastName </td>
+                        <td>
+                            <a class="btn btn-primary" href="/authors/details/@author.Id"><span class="bi bi-ticket-detailed" aria-hidden="true"></span>Details</a>
+                            <a class="btn btn-warning" href="/authors/update/@author.Id"><span class="oi oi-person" aria-hidden="true"></span>Edit</a>
+                            <button class="btn btn-danger" @onclick=@(() => Delete(@author.Id))> <span class="oi oi-delete" aria-hidden="true"></span> Delete </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 @code {
     private List<AuthorReadOnlyDto> authors;
@@ -57,6 +61,20 @@ else
         {
 
             authors = response.Data;
+        }
+    }
+
+    private async Task Delete(int authorId)
+    {
+        var author = authors.First(q => q.Id == authorId);
+        var confirm = await JsRuntime.InvokeAsync<bool>("confirm", $"Are You Sure You Want To Delete {author.FirstName} {author.LastName}?");
+        if (confirm)
+        {
+            var response = await authorService.Delete(authorId);
+            if (response.Success)
+            {
+                await OnInitializedAsync();
+            }
         }
     }
 
