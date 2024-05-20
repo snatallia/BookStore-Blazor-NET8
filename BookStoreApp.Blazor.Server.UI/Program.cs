@@ -5,6 +5,8 @@ using BookStoreApp.Blazor.Server.UI.Providers;
 using BookStoreApp.Blazor.Server.UI.Services.Authentication;
 using BookStoreApp.Blazor.Server.UI.Services.Author;
 using BookStoreApp.Blazor.Server.UI.Services.Base;
+using Microsoft.AspNetCore.Authorization.Policy;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace BookStoreApp.Blazor.Server.UI
@@ -21,10 +23,13 @@ namespace BookStoreApp.Blazor.Server.UI
 
             builder.Services.AddHttpClient<IClient, Client>(cl => cl.BaseAddress = new Uri("https://localhost:7183/"));
             builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddAuthorization();
 
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IAuthorService, AuthorService>();
             builder.Services.AddAutoMapper(typeof(MapperConfig));
+
+            builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
 
             builder.Services.AddScoped<ApiAuthenticationStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(p =>
@@ -53,4 +58,13 @@ namespace BookStoreApp.Blazor.Server.UI
             app.Run();
         }
     }
+
+    public class BlazorAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewareResultHandler
+    {
+        public Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy,
+            PolicyAuthorizationResult authorizeResult)
+        {
+            return next(context);
+        }
+    }   
 }
