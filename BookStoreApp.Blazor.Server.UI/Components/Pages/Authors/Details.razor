@@ -18,11 +18,31 @@ else
                 <label for="Bio">Bio:</label>@author.Bio<br />
             </div>
        </fieldset> 
-       
-        <button @onclick="GoToUpdate" class="btn btn-primary">
+            @if (author.Books == null || author.Books.Any() == false)
+            {
+                <div class="alert alert-dismissible alert-secondary">
+                    No Books for this Author
+                </div>
+            }
+            else
+            {
+                foreach (var book in author.Books)
+                {
+                    
+                        <div class="card-body">
+                            <h5 class="card-title">@book.Title - @book.Price.ToString("C")</h5>
+                            <p class="card-text"></p>
+                            <a href="#" class="btn btn-primary">View Book</a>
+                        </div>
+               
+                }
+            }
+
+            <button @onclick="GoToUpdate" class="btn btn-primary">
             <span class="oi oi-pencil"></span>
             Update Author
         </button>
+
         <button @onclick="BackToList" class="btn btn-outline-secondary">
             <span class="oi oi-media-skip-backward"></span>
             Back To List
@@ -35,7 +55,7 @@ else
     [Parameter]
     public int id { get; set; }
 
-    private AuthorReadOnlyDto author;
+    private AuthorDetailsDto author = new AuthorDetailsDto();
 
     protected override async Task OnInitializedAsync()
     {

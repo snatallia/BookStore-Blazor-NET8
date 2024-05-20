@@ -2,8 +2,8 @@
     <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                  @if(context.User?.Identity?.IsAuthenticated == false)
+              <NotAuthorized>
+                    @if(context.User?.Identity?.IsAuthenticated == false)
                     {
                         <RedirectToLogin />
                     }
@@ -13,9 +13,15 @@
                             <p>You are not authorized to access this resource.</p>
                         </div>    
                     }
-            </NotAuthorized>
+                </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(Layout.MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
 </Router>
 </CascadingAuthenticationState>

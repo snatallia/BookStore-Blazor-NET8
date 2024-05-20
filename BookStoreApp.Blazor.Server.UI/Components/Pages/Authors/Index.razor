@@ -21,9 +21,9 @@ else
         </div>
     }
     else
-    {
-        <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
-        <br />
+    {                   
+            <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
+            <br />
         <table class="table table-responsive">
             <thead>
                 <tr>
@@ -40,8 +40,10 @@ else
                         <td>@author.LastName </td>
                         <td>
                             <a class="btn btn-primary" href="/authors/details/@author.Id"><span class="bi bi-ticket-detailed" aria-hidden="true"></span>Details</a>
+                            <AuthorizeView Roles="Administrator">
                             <a class="btn btn-warning" href="/authors/update/@author.Id"><span class="oi oi-person" aria-hidden="true"></span>Edit</a>
                             <button class="btn btn-danger" @onclick=@(() => Delete(@author.Id))> <span class="oi oi-delete" aria-hidden="true"></span> Delete </button>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

@@ -13,6 +13,7 @@ namespace BookStore.API.Configurations
             CreateMap<AuthorCreateDto, Author>().ReverseMap();
             CreateMap<AuthorUpdateDto, Author>().ReverseMap();
             CreateMap<AuthorReadOnlyDto, Author>().ReverseMap();
+            CreateMap<AuthorDetailsDto, Author>().ReverseMap();
             CreateMap<BookCreateDto, Book>().ReverseMap();
             CreateMap<BookUpdateDto, Book>().ReverseMap();
             CreateMap<Book, BookReadOnlyDto>()
