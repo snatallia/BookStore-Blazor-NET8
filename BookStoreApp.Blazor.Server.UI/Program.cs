@@ -8,6 +8,7 @@ using BookStoreApp.Blazor.Server.UI.Services.Base;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using BookStoreApp.Blazor.Server.UI.Services.Book;
 
 namespace BookStoreApp.Blazor.Server.UI
 {
@@ -27,6 +28,7 @@ namespace BookStoreApp.Blazor.Server.UI
 
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IAuthorService, AuthorService>();
+            builder.Services.AddScoped<IBookService, BookService>();
             builder.Services.AddAutoMapper(typeof(MapperConfig));
 
             builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
