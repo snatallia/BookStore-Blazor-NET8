@@ -170,7 +170,7 @@ namespace BookStore.API.Migrations
                     b.Property<int?>("AuthorId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("ImageData")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 

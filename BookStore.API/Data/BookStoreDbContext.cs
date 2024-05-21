@@ -38,7 +38,7 @@ public partial class BookStoreDbContext : IdentityDbContext<ApiUser>
         {
             entity.HasKey(e => e.Id).HasName("PK__Books__3214EC07F7E4507F");
 
-            entity.Property(e => e.Image).HasMaxLength(50);
+            entity.Property(e => e.Image).HasMaxLength(250);
             entity.Property(e => e.Isbn)
                 .HasMaxLength(50)
                 .HasColumnName("ISBN");

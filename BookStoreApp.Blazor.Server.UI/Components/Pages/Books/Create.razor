@@ -24,12 +24,17 @@
     </div>
     <br />
     <div class="input-group-text">
-        <lable>Author: </lable>
+        <lable>Year: </lable>
+        <InputNumber @bind-Value="Book.Year" class="form-control" id="price"></InputNumber>
+    </div>
+    <br/>
+    <div class="input-group-text">
+        <lable>Summary: </lable>
         <InputTextArea @bind-Value="Book.Summary" class="form-control" id="summary"></InputTextArea>
     </div>
     <br />
     <div class="input-group-text">
-        <lable>Summary: </lable>
+        <lable>Author: </lable>
         <InputSelect @bind-Value="Book.AuthorId" class="form-control" id="author">
             <option value="">--Select Author--</option>
             @foreach(var author in authors)
@@ -89,14 +94,20 @@
         if (file != null)
         {
             var ext = System.IO.Path.GetExtension(file.Name);
-            if (ext.ToLower().Contains("jpg") || ext.ToLower().Contains("png") || ext.ToLower().Contains("jpeg"))
+            if (file.Size > maxFileSize)
+            {
+                uploadFileWarning = "Please select a valid image file (*.jpg | *.png)";
+            }
+            else if (ext.ToLower().Contains("jpg") || ext.ToLower().Contains("png") || ext.ToLower().Contains("jpeg"))
             {
                 var byteArray = new byte[file.Size];
-                await file.OpenReadStream().ReadAsync(byteArray);
+                using var fs = file.OpenReadStream();
+                await fs.ReadAsync(byteArray);
                 string imageType = file.ContentType;
                 string base64String = Convert.ToBase64String(byteArray);
 
-                Book.Image = base64String;
+                Book.ImageData = base64String;
+                Book.OriginalImageName = file.Name;
                 img = $"data:{imageType}; base64,{base64String}";
             }
             else
