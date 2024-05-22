@@ -11,6 +11,7 @@ using BookStore.API.Models.Book;
 using AutoMapper.QueryableExtensions;
 using BookStore.API.Static;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 
 namespace BookStore.API.Controllers
 {
@@ -91,6 +92,22 @@ namespace BookStore.API.Controllers
                 return BadRequest();
             }
             
+
+            if (!string.IsNullOrEmpty(bookDto.ImageData))
+            {
+                var bookold = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookDto.Id);
+
+                var picName = Path.GetFileName(bookold?.Image);
+                var path = $"{webHost.WebRootPath}\\bookcoverimages\\{picName}";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
+
+
+                bookDto.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
+            }
+
             var book = _mapper.Map<Book>(bookDto);
             _context.Entry(book).State = EntityState.Modified;
 

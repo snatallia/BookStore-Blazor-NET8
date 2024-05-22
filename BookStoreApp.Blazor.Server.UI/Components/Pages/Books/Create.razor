@@ -96,10 +96,15 @@
             var ext = System.IO.Path.GetExtension(file.Name);
             if (file.Size > maxFileSize)
             {
-                uploadFileWarning = "Please select a valid image file (*.jpg | *.png)";
+                uploadFileWarning = "This file is too big for upload.";
+                return;
             }
-            else if (ext.ToLower().Contains("jpg") || ext.ToLower().Contains("png") || ext.ToLower().Contains("jpeg"))
+
+            if (!(ext.ToLower().Contains("jpg") || ext.ToLower().Contains("png") || ext.ToLower().Contains("jpeg")))
             {
+                uploadFileWarning = "Please select valid a image file (*.jpg |*.png|*.jpeg)";
+                return;
+            }
                 var byteArray = new byte[file.Size];
                 using var fs = file.OpenReadStream();
                 await fs.ReadAsync(byteArray);
@@ -109,11 +114,7 @@
                 Book.ImageData = base64String;
                 Book.OriginalImageName = file.Name;
                 img = $"data:{imageType}; base64,{base64String}";
-            }
-            else
-            {
-                uploadFileWarning = "Please select valid a image file (*.jpg |*.png|*.jpeg)";
-            }
+        
         }       
     }
 

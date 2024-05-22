@@ -1,0 +1,92 @@
+﻿@page "/books/details/{id:int}"
+@inject IBookService bookService
+@inject NavigationManager navManager
+
+<h3>Details</h3>
+@if (book == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <EditForm Model="book">
+            <fieldset disabled="true">
+                <div class="input-group-text">
+                    <lable>Book title: </lable>
+                    <InputText @bind-Value="book.Title" class="form-control" id="title"></InputText>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>Author name: </lable>
+                    <InputText @bind-Value="book.AuthorName" class="form-control" id="author"></InputText>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>ISBN: </lable>
+                    <InputText @bind-Value="book.Isbn" class="form-control" id="isbn"></InputText>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>Price: </lable>
+                    <InputNumber @bind-Value="book.Price" class="form-control" id="price"></InputNumber>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>Year: </lable>
+                    <InputNumber @bind-Value="book.Year" class="form-control" id="price"></InputNumber>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>Summary: </lable>
+                    <InputTextArea @bind-Value="book.Summary" class="form-control" id="summary"></InputTextArea>
+                </div>
+                <br />
+                <div class="input-group-text">
+                    <lable>Book cover image: </lable>
+                    <div>
+                        <img src="@book.Image" width="100" height="100" alt="@book.Title" />
+                    </div>
+                </div>
+            </fieldset>
+         
+
+            <button @onclick="GoToUpdate" class="btn btn-primary">
+                <span class="oi oi-pencil"></span>
+                Update book info
+            </button>
+
+            <button @onclick="BackToList" class="btn btn-outline-secondary" type="button">
+                <span class="oi oi-media-skip-backward"></span>
+                Back To List
+            </button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private BookDetailsDto book = new BookDetailsDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await bookService.GetBook(id);
+
+        if (response.Success)
+        {
+            book = response.Data;
+        }
+    }
+
+    private void BackToList()
+    {
+        navManager.NavigateTo("/books/");
+    }
+
+    private void GoToUpdate()
+    {
+        navManager.NavigateTo($"/books/update/{id}");
+    }
+}

@@ -3,6 +3,7 @@ using BookStore.API.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
@@ -11,7 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connSrting = builder.Configuration.GetConnectionString("BookStoreDbConnection");
-builder.Services.AddDbContext<BookStoreDbContext>(options => options.UseSqlServer(connSrting));
+builder.Services.AddDbContext<BookStoreDbContext>(options =>
+{
+    options.UseSqlServer(connSrting);
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});
 
 builder.Services.AddIdentityCore<ApiUser>()
     .AddRoles<IdentityRole>()
