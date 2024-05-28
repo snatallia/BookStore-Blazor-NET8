@@ -43,7 +43,7 @@ namespace BookStore.API.Controllers
                 .Include(b => b.Author)
                 .ProjectTo<BookReadOnlyDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-                // var bookDtos = _mapper.Map<IEnumerable<BookReadOnlyDto>>(books);
+                // var bookDtos = mapper.Map<IEnumerable<BookReadOnlyDto>>(books);
                 return Ok(books);
             }
             catch (Exception ex)
