@@ -19,16 +19,20 @@ builder.Services.AddDbContext<BookStoreDbContext>(options =>
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });
 
-builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
-builder.Services.AddScoped<IBooksRepository, BooksRepository>();
 
 builder.Services.AddIdentityCore<ApiUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<BookStoreDbContext>();
 
-builder.Services.AddAutoMapper(typeof(MapperConfig));
+builder.Services. AddAutoMapper(typeof(MapperConfig));
+
+
+builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
+builder.Services.AddScoped<IBooksRepository, BooksRepository>();
 
 builder.Services.AddControllers();
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

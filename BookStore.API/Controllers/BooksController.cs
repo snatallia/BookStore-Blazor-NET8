@@ -12,6 +12,7 @@ using AutoMapper.QueryableExtensions;
 using BookStore.API.Static;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using BookStore.API.Repositories;
 
 namespace BookStore.API.Controllers
 {
@@ -20,16 +21,16 @@ namespace BookStore.API.Controllers
     [Authorize]
     public class BooksController : ControllerBase
     {
-        private readonly BookStoreDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly ILogger<BooksController> _logger;
+        private readonly IBooksRepository booksRepository;
+        private readonly IMapper mapper;
+        private readonly ILogger<BooksController> logger;
         private readonly IWebHostEnvironment webHost;
 
-        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger, IWebHostEnvironment webHost)
+        public BooksController(IBooksRepository booksRepository, IMapper mapper, ILogger<BooksController> logger, IWebHostEnvironment webHost)
         {
-            _context = context;
-            _mapper = mapper;
-            _logger = logger;
+            this.booksRepository = booksRepository;
+            this.mapper = mapper;
+            this.logger = logger;
             this.webHost = webHost;
         }
 
@@ -39,16 +40,13 @@ namespace BookStore.API.Controllers
         {
             try
             {
-                var books = await _context.Books
-                .Include(b => b.Author)
-                .ProjectTo<BookReadOnlyDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-                // var bookD
+                var books = await booksRepository.GetAllBooksAsync();
+
                 return Ok(books);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
+                logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
                 return StatusCode(500, Messages.Error500Message);
             }
         }
@@ -59,14 +57,12 @@ namespace BookStore.API.Controllers
         {
             try
             {
-                var book = await _context.Books
-                .Include(b => b.Author)
-                .ProjectTo<BookDetailsDto>(_mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(b => b.Id == id);
+               
+                var book = await booksRepository.GetBookAsync(id);
 
                 if (book == null)
                 {
-                    _logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
+                    logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
                     return NotFound();
                 }
 
@@ -74,7 +70,7 @@ namespace BookStore.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error performing GET in {nameof(GetBookById)}");
+                logger.LogError(ex, $"Error performing GET in {nameof(GetBookById)}");
                 return StatusCode(500, Messages.Error500Message);
             }
             
@@ -88,14 +84,14 @@ namespace BookStore.API.Controllers
         {
             if (id != bookDto.Id)
             {
-                _logger.LogWarning($"Update ID invalid in {nameof(PutBook)} - ID: {id}");
+                logger.LogWarning($"Update ID invalid in {nameof(PutBook)} - ID: {id}");
                 return BadRequest();
             }
             
 
             if (!string.IsNullOrEmpty(bookDto.ImageData))
             {
-                var bookold = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookDto.Id);
+                var bookold = await booksRepository.GetAsync(id);
 
                 var picName = Path.GetFileName(bookold?.Image);
                 var path = $"{webHost.WebRootPath}\\bookcoverimages\\{picName}";
@@ -108,12 +104,11 @@ namespace BookStore.API.Controllers
                 bookDto.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
             }
 
-            var book = _mapper.Map<Book>(bookDto);
-            _context.Entry(book).State = EntityState.Modified;
+            var book = mapper.Map<Book>(bookDto);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await booksRepository.UpdateAsync(book);
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -123,7 +118,7 @@ namespace BookStore.API.Controllers
                 }
                 else
                 {
-                    _logger.LogError(ex, $"Error Performing GET in {nameof(PutBook)}");
+                    logger.LogError(ex, $"Error Performing GET in {nameof(PutBook)}");
                     return StatusCode(500, Messages.Error500Message);
                 }
             }
@@ -139,16 +134,15 @@ namespace BookStore.API.Controllers
         {
             try
             {
-                var book = _mapper.Map<Book>(bookDto);
+                var book = mapper.Map<Book>(bookDto);
                 book.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
-                _context.Books.Add(book);
-                await _context.SaveChangesAsync();
+                await booksRepository.AddAsync(book);
 
                 return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error Performing POST in {nameof(PostBook)}", bookDto);
+                logger.LogError(ex, $"Error Performing POST in {nameof(PostBook)}", bookDto);
                 return StatusCode(500, Messages.Error500Message);
             }
             
@@ -161,29 +155,28 @@ namespace BookStore.API.Controllers
         {
             try
             {
-                var book = await _context.Books.FindAsync(id);
+                var book = await booksRepository.GetAsync(id);
                 if (book == null)
                 {
-                    _logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
+                    logger.LogWarning($"Record Not Found: {nameof(GetBookById)} - ID: {id}");
                     return NotFound();
                 }
 
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync();
+                await booksRepository.DeleteAsync(id);
 
                 return NoContent();
             }
             catch (Exception ex)
             {
 
-                _logger.LogError(ex, $"Error Performing DELETE in {nameof(DeleteBook)}");
+                logger.LogError(ex, $"Error Performing DELETE in {nameof(DeleteBook)}");
                 return StatusCode(500, Messages.Error500Message);
             }
         }
 
         private async Task<bool> BookExists(int id)
         {
-            return await _context.Books.AnyAsync(e => e.Id == id);
+            return await booksRepository.Exits(id);
         }
 
         private string CreateFile(string imageBase64, string imageName)

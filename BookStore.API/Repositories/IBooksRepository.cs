@@ -1,15 +1,11 @@
 ﻿using BookStore.API.Data;
+using BookStore.API.Models.Book;
 
 namespace BookStore.API.Repositories
 {
     public interface IBooksRepository : IGenericRepository<Book>
     {
-    }
-
-    public class BooksRepository : GenericRepository<Book>, IBooksRepository
-    {
-        public BooksRepository(BookStoreDbContext dbContext) : base(dbContext)
-        {
-        }
+        Task<List<BookReadOnlyDto>> GetAllBooksAsync();
+        Task<BookDetailsDto> GetBookAsync(int id);  
     }
 }

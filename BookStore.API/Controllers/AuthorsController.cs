@@ -56,7 +56,7 @@ namespace BookStore.API.Controllers
         {
             try
             {
-                var author = authorsRepository.GetAuthorDetailsAsync(id);
+                var author = await authorsRepository.GetAuthorDetailsAsync(id);
 
                 if (author == null)
                 {
