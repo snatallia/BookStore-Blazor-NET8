@@ -1,10 +1,10 @@
 ﻿@page "/authors/"
+@namespace BookStoreApp.Blazor.Server.UI.Pages
+@using BookStoreApp.Blazor.Server.UI.Components.Pages.Authors
 @inject IAuthorService authorService;
 @inject IJSRuntime JsRuntime
 
 <h3>Index</h3>
-
-
 
 @if (!response.Success)
 {
@@ -22,62 +22,43 @@ else
     }
     else
     {                   
-            <a class="btn btn-primary" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span>Create</a>
-            <br />
-        <table class="table table-responsive">
-            <thead>
-                <tr>
-                    <th>First name</th>
-                    <th>Last name</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var author in authors)
-                {
-                    <tr>
-                        <td>@author.FirstName</td>
-                        <td>@author.LastName </td>
-                        <td>
-                            <a class="btn btn-primary" href="/authors/details/@author.Id"><span class="bi bi-ticket-detailed" aria-hidden="true"></span>Details</a>
-                            <AuthorizeView Roles="Administrator">
-                            <a class="btn btn-warning" href="/authors/update/@author.Id"><span class="oi oi-person" aria-hidden="true"></span>Edit</a>
-                            <button class="btn btn-danger" @onclick=@(() => Delete(@author.Id))> <span class="oi oi-delete" aria-hidden="true"></span> Delete </button>
-                            </AuthorizeView>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+              <AuthorizeView Roles="Administrator">
+            <a class="btn btn-dark" href="/authors/create"><span class="oi oi-plus" aria-hidden="true"></span> Create </a>
+        </AuthorizeView>
+        <br/>
+        <AuthorTable Authors="authors" TotalSize="TotalSize" OnScroll="LoadAuthors"  OnDeleted="Delete"/>
     }
 }
+
 @code {
-    private List<AuthorReadOnlyDto> authors;
-    private Response<List<AuthorReadOnlyDto>> response = new Response<List<AuthorReadOnlyDto>> { Success = true };
+    public List<AuthorReadOnlyDto> authors;
+    public int TotalSize { get; set; }
+    private Response<AuthorReadOnlyDtoVirtualizeResponse> response = new Response<AuthorReadOnlyDtoVirtualizeResponse> { Success = true };
+    protected Virtualize<AuthorTable> ChildComponent;
 
     protected override async Task OnInitializedAsync()
     {
-        response = await authorService.GetAuthors();
-
+        response = await authorService.GetAuthors(new QueryParameters { StartIndex = 0 });
         if (response.Success)
         {
-
-            authors = response.Data;
+            authors = response.Data.Items.ToList();
         }
+    }
+
+    private async Task LoadAuthors(QueryParameters queryParams)
+    {
+        var virtualizeResult = await authorService.GetAuthors(queryParams);
+        authors = virtualizeResult.Data.Items.ToList();
+        TotalSize = virtualizeResult.Data.TotalSize;
     }
 
     private async Task Delete(int authorId)
     {
-        var author = authors.First(q => q.Id == authorId);
-        var confirm = await JsRuntime.InvokeAsync<bool>("confirm", $"Are You Sure You Want To Delete {author.FirstName} {author.LastName}?");
-        if (confirm)
+        var response = await authorService.Delete(authorId);
+        if (response.Success)
         {
-            var response = await authorService.Delete(authorId);
-            if (response.Success)
-            {
-                await OnInitializedAsync();
-            }
+            await ChildComponent?.RefreshDataAsync();
+            StateHasChanged();
         }
     }
-
 }

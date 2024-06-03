@@ -13,6 +13,7 @@ using BookStore.API.Static;
 using Microsoft.AspNetCore.Authorization;
 using AutoMapper.QueryableExtensions;
 using BookStore.API.Repositories;
+using BookStore.API.Models;
 
 namespace BookStore.API.Controllers
 {
@@ -32,8 +33,25 @@ namespace BookStore.API.Controllers
             this.logger = logger;
         }
 
-        // GET: api/Authors
+        // GET: api/Authors/?startindex=0&pagesize=15
         [HttpGet]
+        public async Task<ActionResult<VirtualizeResponse<AuthorReadOnlyDto>>> GetAuthors([FromQuery]QueryParameters queryParam)
+        {
+            try
+            {
+                var a = await authorsRepository.GetAllAsync<AuthorReadOnlyDto>(queryParam);
+                return a;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error performing GET in {nameof(GetAuthors)}");
+                return StatusCode(500, Messages.Error500Message);
+            }
+            
+        }
+
+        // GET: api/Authors/GetAll
+        [HttpGet("GetAll")] 
         public async Task<ActionResult<IEnumerable<AuthorReadOnlyDto>>> GetAuthors()
         {
             try
@@ -47,7 +65,7 @@ namespace BookStore.API.Controllers
                 logger.LogError(ex, $"Error performing GET in {nameof(GetAuthors)}");
                 return StatusCode(500, Messages.Error500Message);
             }
-            
+
         }
 
         // GET: api/Authors/5

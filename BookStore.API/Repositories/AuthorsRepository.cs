@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BookStore.API.Data;
+using BookStore.API.Models;
 using BookStore.API.Models.Author;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.API.Repositories
@@ -11,7 +13,7 @@ namespace BookStore.API.Repositories
         private readonly BookStoreDbContext dbContext;
         private readonly IMapper mapper;
 
-        public AuthorsRepository(BookStoreDbContext dbContext, IMapper mapper) : base(dbContext)
+        public AuthorsRepository(BookStoreDbContext dbContext, IMapper mapper) : base(dbContext,mapper)
         {
             this.mapper = mapper;
             this.dbContext = dbContext;
